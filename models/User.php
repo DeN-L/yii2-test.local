@@ -2,13 +2,22 @@
 
 namespace app\models;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+use yii\db\ActiveRecord;
+
+/**
+ * Class User
+ * @package app\models
+ *
+ * @property integer $id
+ * @property string $username
+ * @property string $auth_key
+ * @property integer $status
+ * @property integer $created_at
+ * @property integer $updated_at
+ * @property string $password write-only password
+ */
+class User extends ActiveRecord implements \yii\web\IdentityInterface
 {
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
 
     private static $users = [
         '100' => [
@@ -27,13 +36,29 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
         ],
     ];
 
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'user';
+    }
+
 
     /**
      * {@inheritdoc}
      */
     public static function findIdentity($id)
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        $user = isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        if(!$user) {
+            $user = static::findOne($id)->toArray();
+            if($user) {
+                return new static($user);
+            }
+        }
+
+        return $user;
     }
 
     /**
@@ -62,6 +87,11 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
             if (strcasecmp($user['username'], $username) === 0) {
                 return new static($user);
             }
+        }
+
+        $user = static::find()->where(['username' => $username])->asArray()->one();
+        if($user) {
+            return new static($user);
         }
 
         return null;
