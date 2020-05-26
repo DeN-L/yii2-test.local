@@ -51,6 +51,7 @@ $config = [
             'rules' => [
                 '' => 'site/index',
                 '<controller:\w+>/<action:\w+>/' => '<controller>/<action>',
+                'article/prosmotr/<id:\d+>' => 'article/view'
             ],
         ],
 
